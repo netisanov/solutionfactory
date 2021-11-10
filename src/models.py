@@ -1,16 +1,18 @@
 from django.db import models
 from django.urls import reverse
+from datetime import datetime, timedelta, date
 
 
 class BaseModel(models.Model):
-    created_at = models.DateTimeField(db_index=True, auto_now=True)
+    created_at = models.DateTimeField(db_index=True, auto_now_add=True)
 
     class Meta:
         abstract = True
 
 
 class Quiz(BaseModel):
-    end_at = models.DateTimeField()
+    start_date = models.DateField(auto_now_add=True)
+    end_date = models.DateField(default=date.today() + timedelta(days=5))
     title = models.CharField(max_length=100)
 
     def __str__(self):
