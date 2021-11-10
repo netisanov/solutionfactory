@@ -23,7 +23,7 @@ from .serializers import (
     ChoiceSerializer,
     AnswerSerializer,
     AnswerListSerializer,
-    QuizPostSerializer,
+    QuizPostUpdateSerializer,
 )
 
 
@@ -81,10 +81,9 @@ class QuizList(APIView):
         return Response(response.data)
 
     def post(self, request, format=None):
-        serializer = QuizPostSerializer(data=request.data)
-        end_date = parser.parse(serializer.initial_data['end_at'])
+        request.data['end_date'] = (parser.parse(request.data['end_date'])).date()
+        serializer = QuizPostUpdateSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.validated_data['end_at'] = end_date
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -104,6 +103,18 @@ class QuizDetail(APIView):
         quiz = self.get_object(quiz_id)
         quiz.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def put(self, request, quiz_id, format=None):
+        quiz = self.get_object(quiz_id)
+        request.data['end_date'] = (parser.parse(request.data['end_date'])).date()
+        serializer = QuizPostUpdateSerializer(quiz, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
 
 
 class AnswerDetail(APIView):
