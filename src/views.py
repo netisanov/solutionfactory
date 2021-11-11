@@ -24,10 +24,11 @@ from .serializers import (
     AnswerSerializer,
     AnswerListSerializer,
     QuizPostUpdateSerializer,
+    QuestionPostUpdateSerializer,
+    ChoicePostUpdateSerializer,
 )
 
 
-# Ready
 class ApiRoot(APIView):
     def get(self, request, format=None):
         return Response({
@@ -36,7 +37,6 @@ class ApiRoot(APIView):
         })
 
 
-# Ready
 class QuestionDetail(APIView):
     lookup_field = "question_id"
 
@@ -51,8 +51,20 @@ class QuestionDetail(APIView):
         response = QuestionSerializer(question, context=serializer_context)
         return Response(response.data)
 
+    def put(self, request, question_id, quiz_id, format=None):
+        question = self.get_object(question_id, quiz_id)
+        serializer = QuestionPostUpdateSerializer(question, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# Ready
+    def delete(self, request, question_id, quiz_id, format=None):
+        question = self.get_object(question_id, quiz_id)
+        question.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class ChoiceDetail(APIView):
     def get_object(self, choice_id, question_id, quiz_id):
         question = get_object_or_404(Question, pk=question_id, quiz__pk=quiz_id)
@@ -66,15 +78,23 @@ class ChoiceDetail(APIView):
         response = ChoiceSerializer(choice, context=serializer_context)
         return Response(response.data)
 
-    def delete(self, request, quiz_id, format=None):
-        choice = self.get_object(quiz_id)
+    def put(self, request, choice_id, question_id, quiz_id):
+        choice = self.get_object(choice_id, question_id, quiz_id)
+        serializer = ChoicePostUpdateSerializer(choice, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, choice_id, question_id, quiz_id, format=None):
+        choice = self.get_object(choice_id, question_id, quiz_id,)
         choice.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class QuizList(APIView):
     def get(self, request, format=None):
-        queryset = Quiz.objects.filter(start_date__gte=datetime.datetime.now(),
+        queryset = Quiz.objects.filter(start_date__lte=datetime.datetime.now(),
                                        end_date__gte=datetime.datetime.now())
         serializer_context = {"request": request}
         response = QuizSerializer(queryset, context=serializer_context, many=True)
@@ -112,9 +132,6 @@ class QuizDetail(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-
 
 
 class AnswerDetail(APIView):

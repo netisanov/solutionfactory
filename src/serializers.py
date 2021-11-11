@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Quiz
+from .models import Quiz, Question, Choice
 
 
 class ChoiceSerializer(serializers.Serializer):
@@ -7,10 +7,36 @@ class ChoiceSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=100)
 
 
+class ChoicePostUpdateSerializer(serializers.Serializer):
+    title = serializers.CharField(max_length=100)
+
+    def create(self, validated_data):
+        return Choice.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.title = validated_data.get('title', instance.title)
+        instance.clean()
+        instance.save()
+        return instance
+
+
 class QuestionSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     title = serializers.CharField(max_length=100)
     choices = ChoiceSerializer(many=True)
+
+
+class QuestionPostUpdateSerializer(serializers.Serializer):
+    title = serializers.CharField(max_length=100)
+
+    def create(self, validated_data):
+        return Question.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.title = validated_data.get('title', instance.title)
+        instance.clean()
+        instance.save()
+        return instance
 
 
 class AnswerSerializer(serializers.Serializer):
