@@ -37,9 +37,27 @@ class ApiRoot(APIView):
         })
 
 
-class QuestionDetail(APIView):
-    lookup_field = "question_id"
+##############
 
+
+class QuestionList(APIView):
+    def get(self, request, quiz_id, format=None):
+        queryset = Question.objects.filter(quiz=quiz_id)
+        serializer_context = {'request': request}
+        response = QuestionSerializer(queryset, context=serializer_context, many=True)
+        return Response(response.data)
+
+    def post(self, request, quiz_id, format=None):
+        request.data['quiz_id'] = quiz_id
+        serializer = QuestionPostUpdateSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        pass
+
+
+class QuestionDetail(APIView):
     def get_object(self, question_id, quiz_id):
         return get_object_or_404(Question, pk=question_id, quiz__pk=quiz_id)
 
@@ -132,6 +150,9 @@ class QuizDetail(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+###########
 
 
 class AnswerDetail(APIView):

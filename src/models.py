@@ -13,7 +13,7 @@ class BaseModel(models.Model):
 class Quiz(BaseModel):
     start_date = models.DateField(auto_now_add=True)
     end_date = models.DateField(default=date.today() + timedelta(days=5))
-    title = models.CharField(max_length=100)
+    quiz_title = models.CharField(max_length=100)
 
     def __str__(self):
         return self.title
@@ -21,7 +21,7 @@ class Quiz(BaseModel):
 
 class Question(models.Model):
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='questions')
-    title = models.CharField(max_length=100)
+    question_title = models.CharField(max_length=100)
 
     def __str__(self):
         return self.title
@@ -29,7 +29,7 @@ class Question(models.Model):
 
 class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='choices')
-    title = models.CharField(max_length=100)
+    choice_title = models.CharField(max_length=100)
 
     def __str__(self):
         return self.title
